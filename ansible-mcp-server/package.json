@@ -1,0 +1,30 @@
+{
+  "name": "ansible-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Ansible automation and configuration management",
+  "type": "module",
+  "bin": {
+    "ansible-mcp-server": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "prepare": "npm run build",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "ansible",
+    "automation",
+    "configuration-management"
+  ],
+  "author": "IBM Bob",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}

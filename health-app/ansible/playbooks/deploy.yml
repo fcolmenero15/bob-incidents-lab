@@ -1,0 +1,82 @@
+---
+# Deploy healthcare Simulator Application
+# This playbook handles the complete deployment workflow
+
+- name: Deploy healthcare Simulator Application
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    project_root: "{{ playbook_dir }}/../.."
+    terraform_dir: "{{ project_root }}/terraform"
+    
+  tasks:
+    - name: Display deployment information
+      debug:
+        msg: |
+          Starting healthcare Simulator deployment
+          Project: {{ app_name }}
+          Timestamp: {{ ansible_date_time.iso8601 }}
+    
+    - name: Check if Docker is running
+      command: docker info
+      register: docker_check
+      failed_when: false
+      changed_when: false
+      
+    - name: Fail if Docker is not running
+      fail:
+        msg: "Docker is not running. Please start Docker/Colima first."
+      when: docker_check.rc != 0
+    
+    - name: Build backend Docker image
+      command: docker build -t healthcare-backend:latest .
+      args:
+        chdir: "{{ project_root }}/backend"
+      register: backend_build
+      
+    - name: Build frontend Docker image
+      command: docker build -t healthcare-frontend:latest .
+      args:
+        chdir: "{{ project_root }}/frontend"
+      register: frontend_build
+    
+    - name: Initialize Terraform
+      command: terraform init
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: terraform_init
+      
+    - name: Apply Terraform configuration
+      command: terraform apply -auto-approve
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: terraform_apply
+      
+    - name: Wait for containers to be healthy
+      pause:
+        seconds: 10
+        prompt: "Waiting for containers to start..."
+    
+    - name: Check backend health
+      uri:
+        url: "{{ backend_health_url }}"
+        method: GET
+        status_code: 200
+      register: backend_health
+      retries: 5
+      delay: 3
+      until: backend_health.status == 200
+      
+    - name: Display deployment summary
+      debug:
+        msg: |
+          ✅ Deployment Complete!
+          
+          Backend: {{ backend_health_url }}
+          Frontend: {{ frontend_url }}
+          
+          Login credentials:
+          Username: demo
+          Password: demo123
+
+# Made with Bob

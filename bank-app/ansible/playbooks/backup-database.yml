@@ -1,0 +1,77 @@
+---
+# Backup Database for Bank Simulator
+# Creates a backup of the PostgreSQL database
+
+- name: Backup Bank Simulator Database
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups"
+    backup_file: "bank-db-backup-{{ ansible_date_time.epoch }}.sql"
+    
+  tasks:
+    - name: Display backup information
+      debug:
+        msg: |
+          💾 Starting database backup
+          Container: {{ database_container }}
+          Backup file: {{ backup_file }}
+          Timestamp: {{ ansible_date_time.iso8601 }}
+    
+    - name: Create backup directory
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+    
+    - name: Check if database container is running
+      command: docker ps -q -f name={{ database_container }} -f status=running
+      register: db_running
+      changed_when: false
+      
+    - name: Fail if database is not running
+      fail:
+        msg: "Database container is not running. Cannot perform backup."
+      when: db_running.stdout == ""
+    
+    - name: Create database backup
+      shell: |
+        docker exec {{ database_container }} pg_dump -U postgres bankdb > {{ backup_dir }}/{{ backup_file }}
+      register: backup_result
+      
+    - name: Get backup file size
+      stat:
+        path: "{{ backup_dir }}/{{ backup_file }}"
+      register: backup_stat
+      
+    - name: Compress backup
+      archive:
+        path: "{{ backup_dir }}/{{ backup_file }}"
+        dest: "{{ backup_dir }}/{{ backup_file }}.gz"
+        format: gz
+        remove: yes
+      register: compress_result
+      
+    - name: List recent backups
+      find:
+        paths: "{{ backup_dir }}"
+        patterns: "*.sql.gz"
+        age: "-7d"
+      register: recent_backups
+      
+    - name: Display backup summary
+      debug:
+        msg: |
+          ✅ Database Backup Complete!
+          
+          Backup file: {{ backup_file }}.gz
+          Location: {{ backup_dir }}
+          Size: {{ (backup_stat.stat.size / 1024) | round(2) }} KB
+          
+          Recent backups (last 7 days): {{ recent_backups.matched }}
+          
+          To restore this backup:
+          gunzip {{ backup_dir }}/{{ backup_file }}.gz
+          docker exec -i {{ database_container }} psql -U postgres bankdb < {{ backup_dir }}/{{ backup_file }}
+
+# Made with Bob

@@ -1,0 +1,62 @@
+---
+# Rollback Bank Simulator Application
+# Safely tears down the application infrastructure
+
+- name: Rollback Bank Simulator
+  hosts: localhost
+  gather_facts: no
+  vars:
+    project_root: "{{ playbook_dir }}/../.."
+    terraform_dir: "{{ project_root }}/terraform"
+    
+  tasks:
+    - name: Display rollback information
+      debug:
+        msg: |
+          ⚠️  Starting Bank Simulator rollback
+          This will destroy all containers and volumes
+          Timestamp: {{ ansible_date_time.iso8601 }}
+    
+    - name: Confirm rollback
+      pause:
+        prompt: "Are you sure you want to rollback? Press ENTER to continue or Ctrl+C to abort"
+      when: confirm_rollback | default(false) | bool
+    
+    - name: Get list of containers before rollback
+      command: docker ps -a --filter "name=bank-" --format "{{.Names}}"
+      register: containers_before
+      changed_when: false
+      
+    - name: Display containers to be removed
+      debug:
+        msg: "Containers to remove: {{ containers_before.stdout_lines }}"
+      when: containers_before.stdout_lines | length > 0
+    
+    - name: Run Terraform destroy
+      command: terraform destroy -auto-approve
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: terraform_destroy
+      
+    - name: Verify containers are removed
+      command: docker ps -a --filter "name=bank-" --format "{{.Names}}"
+      register: containers_after
+      changed_when: false
+      
+    - name: Clean up dangling images
+      command: docker image prune -f
+      register: image_cleanup
+      
+    - name: Display rollback summary
+      debug:
+        msg: |
+          ✅ Rollback Complete!
+          
+          Containers removed: {{ containers_before.stdout_lines | length }}
+          Remaining containers: {{ containers_after.stdout_lines | length }}
+          
+          Images cleaned: {{ image_cleanup.stdout }}
+          
+          The application has been safely removed.
+
+# Made with Bob

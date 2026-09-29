@@ -1,0 +1,86 @@
+---
+# Health Check Playbook for Healthcare Simulator
+# Verifies all services are running and healthy
+
+- name: Health Check Healthcare Simulator
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Check Docker containers status
+      shell: docker ps --filter "name=healthcare-" --format "table {{'{{'}}.Names{{'}}'}}\t{{'{{'}}.Status{{'}}'}}\t{{'{{'}}.Ports{{'}}'}}"
+      register: container_status
+      changed_when: false
+      
+    - name: Display container status
+      debug:
+        msg: "{{ container_status.stdout_lines }}"
+    
+    - name: Check if backend container is running
+      command: docker ps -q -f name=backend -f status=running
+      register: backend_running
+      changed_when: false
+      
+    - name: Check if frontend container is running
+      command: docker ps -q -f name=frontend -f status=running
+      register: frontend_running
+      changed_when: false
+      
+    - name: Check if database container is running
+      command: docker ps -q -f name=db -f status=running
+      register: database_running
+      changed_when: false
+    
+    - name: Verify backend health endpoint
+      uri:
+        url: "{{ backend_health_url }}"
+        method: GET
+        status_code: 200
+      register: backend_health
+      failed_when: false
+      
+    - name: Verify frontend is accessible
+      uri:
+        url: "{{ frontend_url }}"
+        method: GET
+        status_code: 200
+      register: frontend_health
+      failed_when: false
+    
+    - name: Check backend logs for errors
+      shell: docker ps -q -f name=backend | head -1 | xargs -I {} docker logs {} --tail 20
+      register: backend_logs
+      changed_when: false
+      failed_when: false
+      
+    - name: Generate health report
+      debug:
+        msg: |
+          ═══════════════════════════════════════════════════════
+          🏥 HEALTHCARE SIMULATOR HEALTH CHECK REPORT
+          ═══════════════════════════════════════════════════════
+          
+          📦 Container Status:
+          Backend:  {{ '✅ Running' if backend_running.stdout else '❌ Not Running' }}
+          Frontend: {{ '✅ Running' if frontend_running.stdout else '❌ Not Running' }}
+          Database: {{ '✅ Running' if database_running.stdout else '❌ Not Running' }}
+          
+          🌐 Service Health:
+          Backend API:  {{ '✅ Healthy' if backend_health.status == 200 else '❌ Unhealthy' }}
+          Frontend Web: {{ '✅ Accessible' if frontend_health.status == 200 else '❌ Inaccessible' }}
+          
+          🔗 Endpoints:
+          Backend:  {{ backend_health_url }}
+          Frontend: {{ frontend_url }}
+          
+          ═══════════════════════════════════════════════════════
+    
+    - name: Fail if critical services are down
+      fail:
+        msg: "Critical services are not healthy. Check container logs for details."
+      when: >
+        backend_running.stdout == "" or
+        frontend_running.stdout == "" or
+        database_running.stdout == ""
+
+# Made with Bob

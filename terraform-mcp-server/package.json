@@ -1,0 +1,32 @@
+{
+  "name": "terraform-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for Terraform operations - manage infrastructure as code for SDLC demo",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "terraform-mcp-server": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "watch": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "terraform",
+    "infrastructure",
+    "iac",
+    "sdlc"
+  ],
+  "author": "IBM Bob",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

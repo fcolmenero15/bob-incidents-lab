@@ -1,0 +1,65 @@
+---
+# Update Configuration for Bank Simulator
+# Demonstrates configuration management without full redeployment
+
+- name: Update Bank Simulator Configuration
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Display update information
+      debug:
+        msg: |
+          🔧 Updating Bank Simulator configuration
+          Target: {{ backend_container }}
+          Timestamp: {{ ansible_date_time.iso8601 }}
+    
+    - name: Check if backend container exists
+      command: docker ps -q -f name={{ backend_container }}
+      register: container_check
+      changed_when: false
+      
+    - name: Fail if container not running
+      fail:
+        msg: "Backend container is not running. Deploy the application first."
+      when: container_check.stdout == ""
+    
+    - name: Get current environment variables
+      command: docker inspect {{ backend_container }} --format '{{.Config.Env}}'
+      register: current_env
+      changed_when: false
+      
+    - name: Display current configuration
+      debug:
+        msg: "Current environment: {{ current_env.stdout }}"
+    
+    - name: Restart backend container (graceful)
+      command: docker restart {{ backend_container }}
+      register: restart_result
+      
+    - name: Wait for backend to be healthy
+      uri:
+        url: "{{ backend_health_url }}"
+        method: GET
+        status_code: 200
+      register: health_check
+      retries: 10
+      delay: 2
+      until: health_check.status == 200
+      
+    - name: Verify configuration update
+      command: docker logs {{ backend_container }} --tail 10
+      register: updated_logs
+      changed_when: false
+      
+    - name: Display update summary
+      debug:
+        msg: |
+          ✅ Configuration Update Complete!
+          
+          Container restarted: {{ backend_container }}
+          Health check: {{ 'Passed' if health_check.status == 200 else 'Failed' }}
+          
+          Recent logs:
+          {{ updated_logs.stdout }}
+
+# Made with Bob

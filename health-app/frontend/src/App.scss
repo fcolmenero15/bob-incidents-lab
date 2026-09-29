@@ -1,0 +1,64 @@
+// Import Carbon styles
+@use '@carbon/react';
+
+// Custom styles for the healthcare app
+.healthcare-app {
+  min-height: 100vh;
+  background: var(--cds-background);
+}
+
+.healthcare-header {
+  background: var(--cds-layer-01);
+  border-bottom: 1px solid var(--cds-border-subtle);
+}
+
+.account-tile {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.account-balance {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--cds-text-primary);
+  margin: var(--cds-spacing-05) 0;
+}
+
+.account-actions {
+  margin-top: auto;
+  display: flex;
+  gap: var(--cds-spacing-03);
+}
+
+.loan-estimate {
+  background: var(--cds-layer-01);
+  padding: var(--cds-spacing-05);
+  border-radius: 4px;
+  margin-bottom: var(--cds-spacing-05);
+}
+
+.loan-estimate-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--cds-spacing-03);
+}
+
+.transaction-amount-positive {
+  color: var(--cds-support-success);
+  font-weight: 600;
+}
+
+.transaction-amount-negative {
+  color: var(--cds-support-error);
+  font-weight: 600;
+}
+
+.account-summary {
+  background: var(--cds-layer-01);
+  padding: var(--cds-spacing-05);
+  border-radius: 4px;
+  margin-bottom: var(--cds-spacing-05);
+}
+
+// Made with Bob
