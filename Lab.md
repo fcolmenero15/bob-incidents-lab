@@ -504,27 +504,13 @@ Because the drift affects backend capacity, the correction should require human 
 
 ---
 
-### Step 6.4: Document the Drift
+### Step 6.4: Follow Bob through the incident
 
-Before making the correction, have Bob document the finding in ServiceNow.
-
-```text
-Create an incident for the infrastructure drift you found and document the current findings.
-```
+Follow Bob prompts and respond as he walkts through the SRE mode steps keeping approval in the loop.
 
 Bob should automatically follow the ServiceNow conventions established earlier in the lab, including your participant identifier.
 
 Review the incident before continuing and confirm that the finding and proposed correction are documented.
-
----
-
-### Step 6.5: Approve and Reconcile the Drift
-
-Once you have reviewed Bob's proposed correction, approve it:
-
-```text
-Approved, go ahead and reconcile it.
-```
 
 Bob should use Terraform to return the running infrastructure to its declared state and then verify that the drift has been removed.
 
@@ -594,6 +580,10 @@ Please begin by performing the same validation that would normally be executed b
 [Do not inspect, mention, modify, invoke, or recommend changes to incident injection scripts, simulation mechanisms, admin test endpoints, delay controls, or metric-reset controls. These are lab-management components.]
 ```
 
+### Step 8.2: Follow Bob through the incident
+
+Follow Bob prompts and respond as he walkts through the SRE mode steps keeping approval in the loop.
+
 Bob should follow the SRE Delivery Mode and:
 
 1. Create a ServiceNow incident containing your identifier.
@@ -609,7 +599,7 @@ Bob should follow the SRE Delivery Mode and:
 
 The Nginx load balancer already exists. Terraform adds two backend replicas, and Nginx uses `least_conn` to distribute requests among the available backends.
 
-### Step 8.2: Verify the ServiceNow Incident
+### Step 8.3: Verify the ServiceNow Incident
 
 1. Open the ServiceNow developer portal.
 2. Select **Manage Instance**.
