@@ -254,6 +254,11 @@ asset/bob-mcp.png
 
 ### Step 2.1: Deploy the Application
 
+Prompt Bob to update the Docker socket paths
+```text
+Bob update the docker paths for the bank application to run ./demo-scripts/bank-app/deploy-initial.sh
+```
+
 Deploy the healthy, low-traffic starting environment:
 
 ```bash

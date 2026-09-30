@@ -13,6 +13,11 @@ Use this option only when Ansible does not run correctly from the normal Windows
    wsl --install
    ```
 
+If issues arise specify the distro:
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+
 3. Restart Windows when prompted.
 4. Open **Ubuntu** from the Windows Start menu.
 5. Create the Linux username and password requested during first launch.
@@ -50,8 +55,12 @@ Run these commands from Ubuntu:
 sudo apt update
 sudo apt install -y git ansible nodejs npm curl unzip
 ```
-
-Install Terraform using the HashiCorp package repository if Terraform is not already available inside WSL.
+Terraform install through hashicorp:
+```bash
+wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+sudo apt update && sudo apt install terraform
+```
 
 Verify the tools:
 
